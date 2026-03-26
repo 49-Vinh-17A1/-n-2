@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CourseRec — NCKH_17A1</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0c0e13;
+  --bg2:      #111318;
+  --bg3:      #161a22;
+  --surface:  #1c2130;
+  --surface2: #222840;
+  --border:   #2a3045;
+  --border2:  #354060;
+
+  --ink:   #e8ecf4;
+  --ink2:  #9aa5bf;
+  --ink3:  #5a6680;
+
+  --accent:      #4f8ef7;
+  --accent-dim:  rgba(79,142,247,.12);
+  --accent-glow: rgba(79,142,247,.25);
+
+  --green:     #34d399;
+  --green-dim: rgba(52,211,153,.12);
+  --amber:     #fbbf24;
+  --amber-dim: rgba(251,191,36,.12);
+  --red:       #f87171;
+  --red-dim:   rgba(248,113,113,.12);
+  --purple:    #a78bfa;
+  --purple-dim:rgba(167,139,250,.12);
+
+  --r:  10px;
+  --r2: 14px;
+  --transition: .2s cubic-bezier(.4,0,.2,1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── NAV ── */
+nav {
+  background: rgba(12,14,19,.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  gap: 20px;
+}
+
+.nav-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 19px;
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: -.3px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-brand::before {
+  content: '';
+  display: inline-block;
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-glow);
+  animation: pulse 2.5s ease infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform: scale(1); }
+  50%      { opacity:.6; transform: scale(1.25); }
+}
+
+.nav-sep { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+.model-tabs { display: flex; gap: 3px; flex: 1; }
+.mtab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--ink3);
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  transition: all var(--transition);
+  white-space: nowrap;
+  letter-spacing: .1px;
+}
+.mtab:hover { color: var(--ink2); background: var(--surface); border-color: var(--border); }
+.mtab.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(79,142,247,.3); }
+
+/* ── INIT OVERLAY ── */
+.init-overlay {
+  position: fixed; inset: 0;
+  background: rgba(12,14,19,.92);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(12px);
+}
+.init-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 40px 44px;
+  max-width: 400px; width: 90%;
+  text-align: center;
+}
+.init-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--ink) 40%, var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.init-box p { font-size: 13px; color: var(--ink3); margin-bottom: 28px; line-height: 1.7; }
+.init-progress {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.init-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  border-radius: 2px;
+  transition: width .35s ease;
+  width: 0%;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.init-status { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink3); }
+
+/* ── PAGE ── */
+.page { max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+
+.heading { margin-bottom: 22px; }
+.heading h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -.5px;
+  line-height: 1.2;
+  margin-bottom: 5px;
+}
+.heading h1 em { color: var(--accent); font-style: italic; }
+.heading p { font-size: 13px; color: var(--ink3); }
+
+/* ── STATS ── */
+.stats-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.stat-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--ink3);
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.stat-chip .sv { color: var(--accent); font-weight: 500; }
+#currencyBtn {
+  padding: 5px 14px; border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 500;
+  color: var(--ink3); cursor: pointer;
+  transition: all var(--transition);
+}
+#currencyBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── MODEL DESC ── */
+.model-desc {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--r);
+  padding: 11px 16px;
+  font-size: 12.5px;
+  color: var(--ink3);
+  margin-bottom: 22px;
+  line-height: 1.6;
+  transition: border-color .3s;
+}
+.model-desc strong { color: var(--accent); }
+.model-desc code { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--purple); }
+
+/* ── GRID ── */
+.grid { display: grid; grid-template-columns: 360px 1fr; gap: 16px; align-items: start; }
+
+/* ── PANEL ── */
+.panel {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+}
+.panel-head {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,.02);
+}
+.panel-head h2 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink3);
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+.panel-body { padding: 16px 18px; }
+
+/* ── INNER TABS ── */
+.inner-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.itab {
+  padding: 11px 16px;
+  font-size: 12px; font-weight: 500;
+  color: var(--ink3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--transition);
+  letter-spacing: .3px;
+  background: none; border-top: none; border-left: none; border-right: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.itab:hover { color: var(--ink2); }
+.itab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── UPLOAD ── */
+.drop-zone {
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--r);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: rgba(255,255,255,.02);
+  position: relative;
+}
+.drop-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+.drop-zone input { position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%; }
+.dz-title { font-size: 12.5px; font-weight: 500; color: var(--ink2); margin-bottom: 2px; }
+.dz-sub { font-size: 11.5px; color: var(--ink3); }
+.dz-sub b { color: var(--accent); }
+
+.file-chip {
+  display: none; align-items: center; gap: 10px;
+  background: var(--green-dim);
+  border: 1px solid rgba(52,211,153,.2);
+  border-radius: var(--r);
+  padding: 8px 12px; margin-top: 8px;
+}
+.file-chip.on { display: flex; }
+.fc-name { font-size: 12px; font-weight: 500; color: var(--green); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-meta { font-size: 11px; color: var(--ink3); }
+.fc-del { background:none;border:none;cursor:pointer;color:var(--ink3);font-size:14px;padding:2px 4px;border-radius:4px;flex-shrink:0; transition: color var(--transition); }
+.fc-del:hover { color: var(--red); }
+
+/* ── USER LIST ── */
+.user-search-wrap { position:relative;margin-bottom:10px; }
+.user-search-wrap input {
+  width:100%;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.user-search-wrap input:focus { border-color: var(--accent); }
+.user-search-wrap input::placeholder { color: var(--ink3); }
+.user-search-icon { position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:14px;pointer-events:none;line-height:1; }
+
+.user-list {
+  max-height: 200px; overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg2);
+}
+.user-item {
+  display:flex;align-items:center;gap:10px;
+  padding: 8px 11px;
+  cursor:pointer;
+  transition: background var(--transition);
+  border-bottom: 1px solid var(--border);
+}
+.user-item:last-child { border-bottom:none; }
+.user-item:hover { background: var(--surface); }
+.user-item.selected { background: var(--accent-dim); }
+.u-avatar { width:30px;height:30px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;font-family:'JetBrains Mono',monospace; }
+.u-name { font-size:12.5px;font-weight:500;color:var(--ink); }
+.u-meta { font-size:11px;color:var(--ink3); }
+.u-tags { display:flex;gap:3px;flex-wrap:wrap;margin-top:2px; }
+.u-tag { font-size:9.5px;padding:1px 6px;border-radius:4px;background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,.2);font-weight:500; }
+
+/* ── SELECTED USER CARD ── */
+.sel-user-card { display:none;background:var(--accent-dim);border:1px solid rgba(79,142,247,.2);border-radius:var(--r);padding:12px 14px;margin-bottom:10px; }
+.sel-user-card.on { display:block; }
+.suc-head { display:flex;align-items:center;gap:10px;margin-bottom:9px; }
+.suc-avatar { width:36px;height:36px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;font-family:'JetBrains Mono',monospace; }
+.suc-name { font-size:13px;font-weight:600;color:var(--accent); }
+.suc-meta { font-size:11px;color:var(--ink3); }
+.suc-lbl { font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);font-weight:600;margin-bottom:5px; }
+.suc-rated-list { display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto; }
+.suc-rated-item { display:flex;align-items:center;gap:8px;font-size:11px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;padding:4px 9px; }
+.suc-rated-title { flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink2); }
+.suc-badge { font-weight:600;font-size:11px;padding:1px 6px;border-radius:4px;flex-shrink:0;font-family:'JetBrains Mono',monospace; }
+.rb-high { background:var(--green-dim);color:var(--green); }
+.rb-mid  { background:var(--amber-dim);color:var(--amber); }
+.rb-low  { background:var(--red-dim);color:var(--red); }
+
+/* ── FORM ── */
+.field { margin-bottom:12px; }
+.field-row { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px; }
+label.lbl { display:block;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:5px; }
+
+input[type="text"], select {
+  width:100%;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  appearance: none;
+  transition: border-color var(--transition), background var(--transition);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6680'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 11px center;padding-right:28px;cursor:pointer;
+  color-scheme: dark;
+}
+select option { background: #1c2130; color: var(--ink); }
+input[type="text"]:focus, select:focus { border-color: var(--accent); background: var(--bg3); }
+input[type="text"]::placeholder { color: var(--ink3); }
+
+.range-row { display:flex;align-items:center;gap:9px;margin-top:4px; }
+input[type="range"] {
+  flex:1; height:3px; appearance:none;
+  background: var(--border2); border-radius:2px; outline:none; cursor:pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px;height:14px;
+  background:var(--bg3); border:2px solid var(--accent);
+  border-radius:50%; box-shadow: 0 0 6px var(--accent-glow);
+  transition: transform .15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.rv { font-size:14px;font-weight:600;color:var(--ink);min-width:22px;text-align:right;font-family:'JetBrains Mono',monospace; }
+
+/* ── ALPHA ── */
+.alpha-block { margin-bottom:14px; }
+.alpha-top { display:flex;justify-content:space-between;align-items:center;margin-bottom:6px; }
+.alpha-val {
+  font-size:12px;font-weight:500;color:var(--ink);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:6px;padding:2px 9px;
+  font-family:'JetBrains Mono',monospace;
+}
+input[type="range"].alpha-r { height:5px;border-radius:3px;width:100%;flex:none; }
+input[type="range"].alpha-r::-webkit-slider-thumb { width:16px;height:16px; }
+.alpha-ends { display:flex;justify-content:space-between;margin-top:3px; }
+.alpha-ends span { font-size:10.5px;color:var(--ink3); }
+.ae-c { color:var(--accent); }
+.ae-f { color:var(--green); }
+
+.sep { height:1px;background:var(--border);margin:14px 0; }
+
+.err { display:none;background:var(--red-dim);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--red);margin-bottom:12px; }
+.err.on { display:block; }
+
+/* ── RUN BUTTON ── */
+.run-btn {
+  width:100%; padding:12px;
+  background: var(--accent);
+  border:none; border-radius:var(--r);
+  color:#fff;
+  font-family:'DM Sans',sans-serif;
+  font-size:13.5px; font-weight:600;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition: all var(--transition);
+  letter-spacing:.1px;
+  position:relative; overflow:hidden;
+}
+.run-btn::before {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  transform: translateX(-100%);
+  transition: transform .5s ease;
+}
+.run-btn:hover::before { transform: translateX(100%); }
+.run-btn:hover { background: #6fa0f8; transform:translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+.run-btn:active { transform:translateY(0); }
+.run-btn.loading { opacity:.6; pointer-events:none; }
+.spin { width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none; }
+.run-btn.loading .spin { display:block; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── RESULTS PANEL ── */
+.res-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.res-head h2 { font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px; }
+.res-count {
+  font-size:11px;font-weight:500;color:var(--ink3);
+  background:var(--surface);border:1px solid var(--border);
+  padding:3px 11px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;
+  transition: all var(--transition);
+}
+.res-body { padding:14px 16px; }
+
+.src-note {
+  display:none;
+  font-size:11.5px;color:var(--ink3);
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+  border-radius:7px;padding:7px 12px;margin-bottom:12px;
+}
+.src-note strong { color:var(--ink2); }
+
+/* ── COURSE CARDS ── */
+.clist { display:flex;flex-direction:column;gap:6px; }
+
+.ccard {
+  display:flex; align-items:center; gap:12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  background: var(--bg3);
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--transition), transform var(--transition), background var(--transition);
+  animation: slideUp .3s cubic-bezier(.22,1,.36,1) both;
+}
+.ccard::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background var(--transition);
+  border-radius: 0 0 0 var(--r2);
+}
+.ccard:hover { border-color: var(--border2); background: var(--surface); transform: translateX(3px); }
+.ccard:hover::before { background: var(--accent); }
+.ccard:nth-child(1):hover::before { background: var(--amber); }
+.ccard:nth-child(2):hover::before { background: var(--ink2); }
+.ccard:nth-child(3):hover::before { background: #c97a3a; }
+
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(10px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.crank {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  min-width: 26px;
+  text-align: center;
+  flex-shrink: 0;
+  color: var(--ink3);
+  line-height: 1;
+}
+.ccard:nth-child(1) .crank { color: var(--amber); }
+.ccard:nth-child(2) .crank { color: var(--ink2); }
+.ccard:nth-child(3) .crank { color: #c97a3a; }
+
+.cinfo { flex:1; min-width:0; }
+.ctitle {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ctags { display:flex;gap:4px;flex-wrap:wrap; }
+.ctag {
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 5px;
+  letter-spacing: .1px;
+}
+.ct-s   { background:var(--accent-dim); color:var(--accent); border:1px solid rgba(79,142,247,.2); }
+.ct-l   { background:var(--purple-dim); color:var(--purple); border:1px solid rgba(167,139,250,.2); }
+.ct-free{ background:rgba(52,211,153,.18); color:#6ee7b7; border:1px solid rgba(52,211,153,.4); font-weight:600; }
+.ct-paid{ background:rgba(251,191,36,.13); color:#fcd34d; border:1px solid rgba(251,191,36,.35); font-weight:600; }
+
+/* ── SCORE ── */
+.cscore { text-align:right;flex-shrink:0;min-width:72px; }
+.cscore-n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+}
+.cscore-l {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--ink3);
+  margin: 4px 0 5px;
+}
+.cscore-track {
+  width: 52px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: auto;
+}
+.cscore-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  border-radius: 2px;
+  transition: width .8s cubic-bezier(.22,1,.36,1);
+  box-shadow: 0 0 4px var(--accent-glow);
+}
+
+/* Hybrid breakdown mini-bars */
+.score-bd { display:flex;gap:2px;margin-top:4px;height:2px; }
+.sb-c { background:var(--accent);border-radius:2px; }
+.sb-f { background:var(--green);border-radius:2px; }
+
+/* ── EMPTY STATE ── */
+.empty { text-align:center;padding:60px 20px;color:var(--ink3); }
+.empty-icon { font-size:32px;margin-bottom:12px;opacity:.4; }
+.empty h3 { font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;color:var(--ink2);margin-bottom:6px; }
+.empty p { font-size:13px;line-height:1.7; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .grid { grid-template-columns:1fr; }
+  nav { padding:0 14px; flex-wrap:wrap; height:auto; padding-top:8px; padding-bottom:8px; }
+  .field-row { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- INIT OVERLAY -->
+<div class="init-overlay" id="initOverlay">
+  <div class="init-box">
+    <div class="init-logo">CourseRec</div>
+    <p>Đang khởi tạo dữ liệu người dùng giả lập<br>và xây dựng ma trận similarity…</p>
+    <div class="init-progress"><div class="init-bar" id="initBar"></div></div>
+    <div class="init-status" id="initStatus">Khởi tạo...</div>
+  </div>
+</div>
+
+<nav>
+  <a class="nav-brand" href="#">CourseRec</a>
+  <div class="nav-sep"></div>
+  <div class="model-tabs">
+    <button class="mtab active" data-model="hybrid"     onclick="switchModel('hybrid')">Hybrid</button>
+    <button class="mtab"        data-model="content"    onclick="switchModel('content')">Content-Based</button>
+    <button class="mtab"        data-model="cf"         onclick="switchModel('cf')">Collaborative Filtering</button>
+    <button class="mtab"        data-model="popularity" onclick="switchModel('popularity')">Popularity</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="heading">
+    <h1>Gợi ý khóa học <em>thông minh</em></h1>
+    <p>Xây dựng theo NCKH_17A1demo.ipynb — TF-IDF · Item-Based CF · Hybrid</p>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-chip">courses <span class="sv" id="statCourses">—</span></div>
+    <div class="stat-chip">users <span class="sv" id="statUsers">—</span></div>
+    <div class="stat-chip">ratings <span class="sv" id="statRatings">—</span></div>
+    <div class="stat-chip">sparsity <span class="sv" id="statSparsity">—</span></div>
+    <button id="currencyBtn" onclick="toggleCurrency()">🇺🇸 USD</button>
+  </div>
+
+  <div class="model-desc" id="modelDesc"></div>
+
+  <div class="grid">
+    <!-- LEFT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <!-- Upload -->
+      <div class="panel">
+        <div class="panel-head"><h2>Dữ liệu khóa học · CSV</h2></div>
+        <div class="panel-body">
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="csvFile" accept=".csv" onchange="handleFile(this)">
+            <div class="dz-title">Kéo thả hoặc chọn file CSV</div>
+            <div class="dz-sub">Để trống → dùng <b>44 khóa học mẫu</b></div>
+          </div>
+          <div class="file-chip" id="fileChip">
+            <div style="flex:1;min-width:0">
+              <div class="fc-name" id="fcName">—</div>
+              <div class="fc-meta" id="fcMeta">—</div>
+            </div>
+            <button class="fc-del" onclick="removeFile()">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Config -->
+      <div class="panel" id="inputPanel">
+        <div class="inner-tabs" id="innerTabs">
+          <button class="itab active" id="tabUser"  onclick="switchInputTab('user')">Chọn User</button>
+          <button class="itab"        id="tabQuery" onclick="switchInputTab('query')">Từ khóa</button>
+        </div>
+        <div class="panel-body">
+
+          <div id="userQuerySection">
+            <!-- USER TAB -->
+            <div id="paneUser">
+              <div class="sel-user-card" id="selUserCard"></div>
+              <div class="user-search-wrap">
+                <input type="text" id="userSearch" placeholder="Tìm theo ID hoặc chủ đề…" oninput="filterUsers(this.value)">
+              </div>
+              <div class="user-list" id="userList"></div>
+            </div>
+
+            <!-- QUERY TAB -->
+            <div id="paneQuery" style="display:none">
+              <div class="field">
+                <label class="lbl">Từ khóa tìm kiếm</label>
+                <input type="text" id="query" placeholder="vd: python machine learning, guitar beginner…">
+              </div>
+            </div>
+
+            <div class="sep"></div>
+          </div>
+
+          <!-- Filters -->
+          <div class="field-row">
+            <div>
+              <label class="lbl">Chủ đề</label>
+              <select id="subject"><option value="">Tất cả</option></select>
+            </div>
+            <div>
+              <label class="lbl">Cấp độ</label>
+              <select id="level">
+                <option value="">Tất cả</option>
+                <option>All Levels</option>
+                <option>Beginner Level</option>
+                <option>Intermediate Level</option>
+                <option>Expert Level</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:14px;">
+            <div>
+              <label class="lbl">Loại</label>
+              <select id="paidFilter">
+                <option value="">Tất cả</option>
+                <option value="paid">Có phí</option>
+                <option value="free">Miễn phí</option>
+              </select>
+            </div>
+            <div>
+              <label class="lbl">Top K</label>
+              <div class="range-row">
+                <input type="range" id="kSlider" min="3" max="20" value="10"
+                  oninput="document.getElementById('kVal').textContent=this.value">
+                <span class="rv" id="kVal">10</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alpha -->
+          <div id="alphaBlock">
+            <div class="alpha-block">
+              <div class="alpha-top">
+                <label class="lbl" style="margin:0">Trọng số α</label>
+                <span class="alpha-val" id="alphaDisplay">0.60</span>
+              </div>
+              <input type="range" class="alpha-r" id="alphaSlider" min="0" max="100" value="60"
+                oninput="updateAlpha(this.value)"
+                style="background:linear-gradient(to right,var(--accent) 60%,var(--green) 60%)">
+              <div class="alpha-ends">
+                <span class="ae-c">← Content</span>
+                <span class="ae-f">CF →</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="err" id="errBanner"></div>
+
+          <button class="run-btn" id="runBtn" onclick="runModel()">
+            <div class="spin"></div>
+            <span id="runLabel">Chạy Hybrid Recommender</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="panel" style="min-height:500px;">
+      <div class="res-head">
+        <h2>Kết quả gợi ý</h2>
+        <div class="res-count" id="resCount">Chờ yêu cầu…</div>
+      </div>
+      <div class="res-body">
+        <div class="src-note" id="srcNote"></div>
+        <div id="resCont">
+          <div class="empty">
+            <div class="empty-icon">◈</div>
+            <h3>Sẵn sàng đề xuất</h3>
+            <p>Chọn user hoặc nhập từ khóa,<br>rồi nhấn <strong style="color:var(--ink2)">Chạy</strong>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// DỮ LIỆU MẪU
+// ══════════════════════════════════════════════════════════════════
+const SAMPLE_COURSES = [
+  {course_title:"The Complete JavaScript Course 2023: From Zero to Expert!",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:741765,num_reviews:173624},
+  {course_title:"The Web Developer Bootcamp 2023",subject:"Web Development",level:"All Levels",price:199.99,is_paid:true,num_subscribers:672695,num_reviews:182249},
+  {course_title:"React - The Complete Guide 2023 (incl. React Router & Redux)",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:684190,num_reviews:169424},
+  {course_title:"The Complete Python Bootcamp From Zero to Hero in Python 3",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:482855,num_reviews:110824},
+  {course_title:"Node.js, Express, MongoDB & More: The Complete Bootcamp",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:205260,num_reviews:45574},
+  {course_title:"The Complete Web Developer in 2023: Zero to Mastery",subject:"Web Development",level:"All Levels",price:199.99,is_paid:true,num_subscribers:285235,num_reviews:45231},
+  {course_title:"Angular - The Complete Guide (2023 Edition)",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:282565,num_reviews:70824},
+  {course_title:"Vue - The Complete Guide (incl. Router & Composition API)",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:218330,num_reviews:51574},
+  {course_title:"CSS - The Complete Guide 2023 (incl. Flexbox, Grid & Sass)",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:180975,num_reviews:40074},
+  {course_title:"Typescript: The Complete Developer's Guide",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:178390,num_reviews:44874},
+  {course_title:"Python and Django Full Stack Web Developer Bootcamp",subject:"Web Development",level:"All Levels",price:189.99,is_paid:true,num_subscribers:186635,num_reviews:36624},
+  {course_title:"PHP & MySQL - Beginner to Expert",subject:"Web Development",level:"All Levels",price:94.99,is_paid:true,num_subscribers:124290,num_reviews:18324},
+  {course_title:"Bootstrap 4 From Scratch With 5 Projects",subject:"Web Development",level:"All Levels",price:94.99,is_paid:true,num_subscribers:162755,num_reviews:29624},
+  {course_title:"WordPress for Beginners - Master WordPress Quickly",subject:"Web Development",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:152070,num_reviews:21374},
+  {course_title:"Learn HTML5 Programming From Scratch",subject:"Web Development",level:"Beginner Level",price:0,is_paid:false,num_subscribers:270660,num_reviews:29874},
+  {course_title:"Microsoft Excel - Excel from Beginner to Advanced",subject:"Business Finance",level:"All Levels",price:189.99,is_paid:true,num_subscribers:475560,num_reviews:99374},
+  {course_title:"The Complete Financial Analyst Course 2023",subject:"Business Finance",level:"All Levels",price:189.99,is_paid:true,num_subscribers:272530,num_reviews:66374},
+  {course_title:"Stock Market Investing for Beginners & Dummies",subject:"Business Finance",level:"Beginner Level",price:29.99,is_paid:true,num_subscribers:244410,num_reviews:36924},
+  {course_title:"The Complete Investment Banking Course 2023",subject:"Business Finance",level:"All Levels",price:189.99,is_paid:true,num_subscribers:186075,num_reviews:31574},
+  {course_title:"Financial Modeling & Valuation Analyst (FMVA) Complete",subject:"Business Finance",level:"All Levels",price:199.99,is_paid:true,num_subscribers:168940,num_reviews:27374},
+  {course_title:"Accounting & Bookkeeping Masterclass - Beginner to Advanced",subject:"Business Finance",level:"All Levels",price:94.99,is_paid:true,num_subscribers:148235,num_reviews:23274},
+  {course_title:"Entrepreneurship - Startup your Business",subject:"Business Finance",level:"All Levels",price:94.99,is_paid:true,num_subscribers:133905,num_reviews:17874},
+  {course_title:"Business Analysis Fundamentals",subject:"Business Finance",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:121380,num_reviews:17524},
+  {course_title:"Budgeting and Savings: Learn to Control Your Personal Finance",subject:"Business Finance",level:"Beginner Level",price:0,is_paid:false,num_subscribers:129210,num_reviews:14874},
+  {course_title:"Complete Finance & Valuation Course: DCF Model",subject:"Business Finance",level:"All Levels",price:94.99,is_paid:true,num_subscribers:114290,num_reviews:16724},
+  {course_title:"Guitar Lessons for Beginners: How to Play Guitar",subject:"Musical Instruments",level:"Beginner Level",price:189.99,is_paid:true,num_subscribers:270660,num_reviews:49624},
+  {course_title:"Complete Guitar System - Beginner to Advanced",subject:"Musical Instruments",level:"All Levels",price:189.99,is_paid:true,num_subscribers:155620,num_reviews:38374},
+  {course_title:"Beginner Acoustic Guitar Lessons",subject:"Musical Instruments",level:"Beginner Level",price:0,is_paid:false,num_subscribers:196120,num_reviews:26874},
+  {course_title:"Piano Lessons for Beginners: Learn Piano Online",subject:"Musical Instruments",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:148235,num_reviews:22374},
+  {course_title:"Music Theory Comprehensive Complete",subject:"Musical Instruments",level:"All Levels",price:189.99,is_paid:true,num_subscribers:128160,num_reviews:21374},
+  {course_title:"Electronic Music Production in Ableton Live",subject:"Musical Instruments",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:118800,num_reviews:16374},
+  {course_title:"The Complete Guitar Chord Guide",subject:"Musical Instruments",level:"Beginner Level",price:0,is_paid:false,num_subscribers:135970,num_reviews:18874},
+  {course_title:"Drum Lessons for Beginners",subject:"Musical Instruments",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:108470,num_reviews:14124},
+  {course_title:"Bass Guitar for Beginners",subject:"Musical Instruments",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:99470,num_reviews:12874},
+  {course_title:"Adobe Photoshop CC - Essentials Training Course",subject:"Graphic Design",level:"Beginner Level",price:189.99,is_paid:true,num_subscribers:326895,num_reviews:62374},
+  {course_title:"Canva for Beginners: Create Eye-Catching Designs",subject:"Graphic Design",level:"Beginner Level",price:0,is_paid:false,num_subscribers:226540,num_reviews:28374},
+  {course_title:"Graphic Design Masterclass - Learn GREAT Design",subject:"Graphic Design",level:"All Levels",price:189.99,is_paid:true,num_subscribers:159590,num_reviews:32374},
+  {course_title:"Figma UI UX Design Essentials",subject:"Graphic Design",level:"All Levels",price:189.99,is_paid:true,num_subscribers:162755,num_reviews:27374},
+  {course_title:"Adobe Illustrator CC - Essentials Training Course",subject:"Graphic Design",level:"Beginner Level",price:189.99,is_paid:true,num_subscribers:190710,num_reviews:32874},
+  {course_title:"User Experience Design Essentials - Adobe XD UI UX",subject:"Graphic Design",level:"All Levels",price:189.99,is_paid:true,num_subscribers:141360,num_reviews:22874},
+  {course_title:"Logo Design Mastery in Adobe Illustrator",subject:"Graphic Design",level:"All Levels",price:94.99,is_paid:true,num_subscribers:124290,num_reviews:17374},
+  {course_title:"The Complete Graphic Design Theory for Beginners",subject:"Graphic Design",level:"Beginner Level",price:94.99,is_paid:true,num_subscribers:135970,num_reviews:19374},
+  {course_title:"Motion Graphics with Adobe After Effects",subject:"Graphic Design",level:"All Levels",price:189.99,is_paid:true,num_subscribers:108470,num_reviews:18374},
+  {course_title:"Adobe XD - UI/UX Design, Prototype & Handoff",subject:"Graphic Design",level:"All Levels",price:94.99,is_paid:true,num_subscribers:118800,num_reviews:16874},
+];
+
+// ══════════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════════
+let uploadedCourses=null, dataSource='sample';
+let activeModel='hybrid', activeInputTab='user';
+let selectedUserId=null;
+let showVND=false;
+const USD_TO_VND=25400;
+
+function formatPrice(p){
+  if(showVND){const v=Math.round(p*USD_TO_VND/1000)*1000;return v.toLocaleString('vi-VN')+'₫';}
+  if(p>=1000)return p.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+  return p>0?'$'+p.toFixed(2):'Free';
+}
+function toggleCurrency(){
+  showVND=!showVND;
+  document.getElementById('currencyBtn').textContent=showVND?'🇻🇳 VND':'🇺🇸 USD';
+  if(document.getElementById('resCont').querySelector('.ccard'))runModel();
+}
+
+let allRatings=[],syntheticUsers=[];
+let trainUserItemMatrix={},itemSimilarityDf={};
+let tfidfMatrix=[],tfidfVectorizer=null;
+let trainData=[],contentSimilarityMatrix=[];
+
+// ── Popularity (Cell 21,25) ──
+function minMaxNorm(arr){const mn=Math.min(...arr),mx=Math.max(...arr);if(mx===mn)return arr.map(()=>0);return arr.map(v=>(v-mn)/(mx-mn));}
+function calculatePopularityScore(d){
+  const w=d.map(c=>({...c,review_rate:c.num_reviews/(c.num_subscribers+1),log_num_subscribers:Math.log1p(c.num_subscribers),log_num_reviews:Math.log1p(c.num_reviews)}));
+  const ns=minMaxNorm(w.map(c=>c.log_num_subscribers)),nr=minMaxNorm(w.map(c=>c.log_num_reviews)),nrr=minMaxNorm(w.map(c=>c.review_rate));
+  return w.map((c,i)=>({...c,norm_subscribers:ns[i],norm_reviews:nr[i],norm_review_rate:nrr[i],popularity_score:0.5*ns[i]+0.3*nr[i]+0.2*nrr[i]}));
+}
+function getPopularityRecommendations(d,subject,level,paidFilter,k){
+  let df=[...d];
+  if(subject)df=df.filter(c=>c.subject===subject);
+  if(level)df=df.filter(c=>c.level===level);
+  if(paidFilter==='paid')df=df.filter(c=>c.is_paid);
+  if(paidFilter==='free')df=df.filter(c=>!c.is_paid);
+  df.sort((a,b)=>b.popularity_score-a.popularity_score);
+  return df.slice(0,k).map(c=>({...c,score:c.popularity_score,scoreLabel:'Popularity'}));
+}
+
+// ── TF-IDF (Cell 30) ──
+const STOP=new Set(['i','me','my','myself','we','our','ours','ourselves','you','your','yours','yourself','yourselves','he','him','his','himself','she','her','hers','herself','it','its','itself','they','them','their','theirs','themselves','what','which','who','whom','this','that','these','those','am','is','are','was','were','be','been','being','have','has','had','having','do','does','did','doing','a','an','the','and','but','if','or','because','as','until','while','of','at','by','for','with','about','against','between','into','through','during','before','after','above','below','to','from','up','down','in','out','on','off','over','under','again','further','then','once','here','there','when','where','why','how','all','both','each','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','s','t','can','will','just','don','should','now','d','ll','m','o','re','ve','y','ain','aren','couldn','didn','doesn','hadn','hasn','haven','isn','ma','mightn','mustn','needn','shan','shouldn','wasn','weren','won','wouldn']);
+function tokenize(t){return(t||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(w=>w.length>1&&!STOP.has(w));}
+function buildTfidfVectorizer(docs,maxF=1000){
+  const tfs=docs.map(d=>{const ws=tokenize(d),tf={};ws.forEach(w=>tf[w]=(tf[w]||0)+1);const tot=ws.length||1;Object.keys(tf).forEach(k=>tf[k]/=tot);return tf;});
+  const df={};tfs.forEach(tf=>Object.keys(tf).forEach(w=>df[w]=(df[w]||0)+1));
+  const vocab=Object.entries(df).sort((a,b)=>b[1]-a[1]).slice(0,maxF).map(([w])=>w);
+  const vocabSet=new Set(vocab),N=docs.length,idf={};
+  vocab.forEach(w=>{idf[w]=Math.log((N+1)/(df[w]+1))+1;});
+  const matrix=tfs.map(tf=>{const vec={};Object.keys(tf).forEach(w=>{if(vocabSet.has(w))vec[w]=tf[w]*idf[w];});return vec;});
+  return{vocab,idf,matrix};
+}
+function transformQuery(q,idf){const ws=tokenize(q),tf={};ws.forEach(w=>tf[w]=(tf[w]||0)+1);const tot=ws.length||1,vec={};Object.keys(tf).forEach(w=>{if(idf[w])vec[w]=(tf[w]/tot)*idf[w];});return vec;}
+function cosineSim(a,b){let dot=0,ma=0,mb=0;const keys=new Set([...Object.keys(a),...Object.keys(b)]);keys.forEach(k=>{const va=a[k]||0,vb=b[k]||0;dot+=va*vb;ma+=va*va;mb+=vb*vb;});const d=Math.sqrt(ma)*Math.sqrt(mb);return d?dot/d:0;}
+function buildContentSimilarityMatrix(m){const n=m.length,s=Array.from({length:n},()=>new Float32Array(n));for(let i=0;i<n;i++){s[i][i]=1;for(let j=i+1;j<n;j++){const v=cosineSim(m[i],m[j]);s[i][j]=v;s[j][i]=v;}}return s;}
+
+// ── Synthetic Ratings (Cell 34) ──
+function makePRNG(seed){let s=seed>>>0;return function(){s+=0x6D2B79F5;let t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function generateSyntheticRatings(dataArr,userIdList,avg=20,seed=42){
+  const subjects=[...new Set(dataArr.map(c=>c.subject))];
+  const ratingsList=[],usersMeta=[];
+  for(const userId of userIdList){
+    const rng=makePRNG(seed+userId);
+    const nPref=1+Math.floor(rng()*3);
+    const sh=[...subjects];for(let i=sh.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[sh[i],sh[j]]=[sh[j],sh[i]];}
+    const prefSubj=sh.slice(0,nPref);
+    const prefCourses=dataArr.filter(c=>prefSubj.includes(c.subject));
+    if(!prefCourses.length)continue;
+    const nR=Math.min(5+Math.floor(rng()*(avg*2-5+1)),prefCourses.length);
+    const pool=[...prefCourses],sampled=[];
+    const rng2=makePRNG(seed+userId+1);
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(rng2()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    for(let i=0;i<nR;i++)sampled.push(pool[i]);
+    for(const course of sampled){
+      let base=3.0;
+      const ls=Math.log1p(course.num_subscribers)/Math.log1p(741765);
+      if(ls>0.5)base+=1.0;else if(ls>0)base+=0.5;
+      const noise=rng()-0.5;
+      const rating=Math.min(5,Math.max(1,Math.round((base+noise)*10)/10));
+      ratingsList.push({user_id:userId,course_title:course.course_title,rating});
+    }
+    usersMeta.push({id:userId,preferred_subjects:prefSubj,n_ratings:nR});
+  }
+  return{ratings:ratingsList,users:usersMeta};
+}
+function splitRatingsPerUser(arr,vr=0.2,tr=0.2,min=5,rs=42){
+  const by={};arr.forEach(r=>{(by[r.user_id]=by[r.user_id]||[]).push(r);});
+  const tl=[],vl=[],tl2=[];const rng=makePRNG(rs);
+  for(const rows of Object.values(by)){
+    if(rows.length<min)continue;
+    const sh=[...rows];for(let i=sh.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[sh[i],sh[j]]=[sh[j],sh[i]];}
+    const n=sh.length,ts=Math.floor(n*tr),vs=Math.floor(n*vr);
+    tl.push(...sh.slice(0,n-vs-ts));vl.push(...sh.slice(n-vs-ts,n-ts));tl2.push(...sh.slice(n-ts));
+  }
+  return{train:tl,val:vl,test:tl2};
+}
+function buildUserItemMatrix(r){const m={};for(const x of r){if(!m[x.user_id])m[x.user_id]={};m[x.user_id][x.course_title]=x.rating;}return m;}
+function buildItemSimilarityDf(mat,titles){
+  const iv={};for(const t of titles){iv[t]={};for(const[uid,cs]of Object.entries(mat)){if(cs[t])iv[t][uid]=cs[t];}}
+  const s={};for(const t1 of titles){s[t1]={};for(const t2 of titles)s[t1][t2]=t1===t2?1:cosineSim(iv[t1],iv[t2]);}
+  return s;
+}
+function predictRatingItemCf(uid,title,mat,sim,k=10){
+  if(!sim[title]||!mat[uid])return 0;
+  const ur=mat[uid],rc=Object.keys(ur).filter(c=>ur[c]>0);if(!rc.length)return 0;
+  const sims=rc.map(c=>({course:c,sim:sim[title][c]||0})).sort((a,b)=>b.sim-a.sim).slice(0,k);
+  const ss=sims.reduce((s,x)=>s+x.sim,0);if(!ss)return 0;
+  return sims.reduce((s,x)=>s+x.sim*(ur[x.course]||0),0)/ss;
+}
+function getRecommendationsCf(uid,mat,sim,k=10){
+  if(!mat[uid])return[];
+  const ur=mat[uid],rated=new Set(Object.keys(ur).filter(c=>ur[c]>0));
+  const unrated=[...new Set(Object.keys(sim))].filter(c=>!rated.has(c));
+  const preds={};for(const c of unrated){const p=predictRatingItemCf(uid,c,mat,sim);if(p>0)preds[c]=p;}
+  return Object.entries(preds).sort((a,b)=>b[1]-a[1]).slice(0,k).map(([t,s])=>({course_title:t,score:s,scoreLabel:'CF Score'}));
+}
+function hybridQueryRecommend(query,vec,tfidf,cSim,cfSim,data,alpha=0.6,topN=5){
+  const qv=transformQuery(query,vec.idf);
+  const cs=tfidf.map(v=>cosineSim(qv,v));
+  const pool=Math.max(20,topN*3);
+  const indexed=cs.map((s,i)=>[i,s]).sort((a,b)=>b[1]-a[1]).slice(0,pool).map(([i])=>i);
+  const hs={};
+  for(const idx of indexed){
+    const ct=data[idx].course_title,cScore=cs[idx];
+    let cfScore=0;
+    if(cfSim[ct]){const others=indexed.filter(i=>i!==idx&&cfSim[ct][data[i].course_title]!==undefined).map(i=>data[i].course_title);if(others.length){const v=others.map(c=>cfSim[ct][c]);cfScore=v.reduce((s,x)=>s+x,0)/v.length;}}
+    hs[idx]={courseTitle:ct,contentScore:cScore,cfScore,hybridScore:alpha*cScore+(1-alpha)*cfScore};
+  }
+  return Object.entries(hs).sort((a,b)=>b[1].hybridScore-a[1].hybridScore).slice(0,topN).map(([idx,s])=>({...data[parseInt(idx)],score:s.hybridScore,contentScore:s.contentScore,cfScore:s.cfScore,scoreLabel:'Hybrid'}));
+}
+function hybridUserRecommend(uid,mat,cSimMat,titles,cfSim,data,alpha=0.5,topN=10){
+  if(!mat[uid])return[];
+  const ur=mat[uid],liked=Object.entries(ur).filter(([_,r])=>r>=3).map(([c])=>c);if(!liked.length)return[];
+  const rated=new Set(Object.keys(ur).filter(c=>ur[c]>0));
+  const unrated=[...new Set(Object.keys(cfSim))].filter(c=>!rated.has(c));
+  const hs={};
+  for(const c of unrated){
+    let cfScore=0;
+    if(cfSim[c]){const li=liked.filter(x=>cfSim[c][x]!==undefined);if(li.length){const sims=li.map(x=>cfSim[c][x]),ratings=li.map(x=>ur[x]||0),ss=sims.reduce((s,v)=>s+v,0);if(ss>0)cfScore=(sims.reduce((s,v,i)=>s+v*ratings[i],0)/ss)/5;}}
+    let contentScore=0;
+    const ci=titles.indexOf(c);if(ci>=0){const li=liked.map(x=>titles.indexOf(x)).filter(i=>i>=0);if(li.length){const v=li.map(i=>cSimMat[ci][i]);contentScore=v.reduce((s,x)=>s+x,0)/v.length;}}
+    const h=alpha*cfScore+(1-alpha)*contentScore;if(h>0)hs[c]={cfScore,contentScore,hybridScore:h};
+  }
+  return Object.entries(hs).sort((a,b)=>b[1].hybridScore-a[1].hybridScore).slice(0,topN).map(([t,s])=>{const info=data.find(c=>c.course_title===t)||{};return{...info,course_title:t,score:s.hybridScore,contentScore:s.contentScore,cfScore:s.cfScore,scoreLabel:'Hybrid'};});
+}
+
+// ── INIT ──
+async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+async function initSystem(){
+  document.getElementById('initOverlay').style.display='flex';
+  const bar=document.getElementById('initBar'),status=document.getElementById('initStatus');
+  const courses=uploadedCourses||SAMPLE_COURSES;
+  status.textContent='Tính Popularity Score (Cell 21)...';bar.style.width='10%';await sleep(30);
+  trainData=calculatePopularityScore(courses);
+  status.textContent='Xây dựng TF-IDF (Cell 30)...';bar.style.width='25%';await sleep(30);
+  const cf=trainData.map(c=>(c.course_title||'')+' '+(c.subject||'')+' '+(c.level||''));
+  const vec=buildTfidfVectorizer(cf,1000);tfidfVectorizer=vec;tfidfMatrix=vec.matrix;
+  status.textContent='Content Similarity Matrix (Cell 31)...';bar.style.width='40%';await sleep(30);
+  contentSimilarityMatrix=buildContentSimilarityMatrix(tfidfMatrix);
+  status.textContent='Tạo 500 users giả lập (Cell 34)...';bar.style.width='55%';await sleep(50);
+  const ids=Array.from({length:500},(_,i)=>i);
+  const{ratings,users}=generateSyntheticRatings(trainData,ids,20,42);
+  allRatings=ratings;syntheticUsers=users;
+  status.textContent='Phân chia Train/Val/Test (Cell 35)...';bar.style.width='65%';await sleep(30);
+  const{train:tr}=splitRatingsPerUser(allRatings,0.2,0.2,5,42);
+  status.textContent='User-Item Matrix (Cell 37)...';bar.style.width='75%';await sleep(30);
+  trainUserItemMatrix=buildUserItemMatrix(tr);
+  status.textContent='Item-Item Similarity (Cell 38)...';bar.style.width='85%';await sleep(50);
+  const titles=trainData.map(c=>c.course_title);
+  itemSimilarityDf=buildItemSimilarityDf(trainUserItemMatrix,titles);
+  bar.style.width='100%';status.textContent='Hoàn tất ✓';await sleep(200);
+
+  const nU=new Set(allRatings.map(r=>r.user_id)).size,nC=courses.length;
+  const trc=Object.values(trainUserItemMatrix).reduce((s,u)=>s+Object.keys(u).length,0);
+  const sp=((nU*nC-trc)/(nU*nC)*100).toFixed(1);
+  document.getElementById('statCourses').textContent=nC;
+  document.getElementById('statUsers').textContent=nU.toLocaleString();
+  document.getElementById('statRatings').textContent=allRatings.length.toLocaleString();
+  document.getElementById('statSparsity').textContent=sp+'%';
+  populateSubject(courses);renderUserList(syntheticUsers,'');switchModel(activeModel);
+  document.getElementById('initOverlay').style.display='none';
+}
+
+// ── MODEL CONFIG ──
+const MODEL_INFO={
+  hybrid:    {label:'Hybrid Recommender',    desc:'<strong>Hybrid:</strong> Dùng <code>hybrid_query_recommend</code> (Cell 43) hoặc <code>hybrid_user_recommend</code> (Cell 46). hybrid_score = α×content + (1-α)×CF.'},
+  content:   {label:'Content-Based',         desc:'<strong>Content-Based (Cell 32):</strong> TF-IDF trên <em>combined_features = title + subject + level</em>. Tìm kiếm theo từ khóa bằng Cosine Similarity.'},
+  cf:        {label:'Collaborative Filtering',desc:'<strong>CF Item-Based (Cell 39–40):</strong> Ma trận User-Item từ 500 users giả lập. Dự đoán rating = weighted average của top-k similar items.'},
+  popularity:{label:'Popularity-Based',       desc:'<strong>Popularity-Based (Cell 21, 25):</strong> popularity_score = 0.5×norm_sub + 0.3×norm_reviews + 0.2×norm_review_rate.'},
+};
+
+function switchModel(m){
+  activeModel=m;
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('active',t.dataset.model===m));
+  document.getElementById('modelDesc').innerHTML=MODEL_INFO[m].desc;
+  document.getElementById('alphaBlock').style.display=m==='hybrid'?'':'none';
+  document.getElementById('runLabel').textContent='Chạy '+MODEL_INFO[m].label;
+  const it=document.getElementById('innerTabs'),uqs=document.getElementById('userQuerySection');
+  if(m==='popularity'){it.style.display='none';uqs.style.display='none';}
+  else if(m==='content'){it.style.display='none';uqs.style.display='';switchInputTab('query');}
+  else if(m==='cf'){it.style.display='none';uqs.style.display='';switchInputTab('user');}
+  else{it.style.display='';uqs.style.display='';}
+  clearResults();
+}
+
+function updateAlpha(v){
+  document.getElementById('alphaDisplay').textContent=(v/100).toFixed(2);
+  document.getElementById('alphaSlider').style.background=`linear-gradient(to right,var(--accent) 0%,var(--accent) ${v}%,var(--green) ${v}%,var(--green) 100%)`;
+}
+function switchInputTab(t){
+  activeInputTab=t;
+  document.getElementById('paneUser').style.display=t==='user'?'':'none';
+  document.getElementById('paneQuery').style.display=t==='query'?'':'none';
+  document.getElementById('tabUser').classList.toggle('active',t==='user');
+  document.getElementById('tabQuery').classList.toggle('active',t==='query');
+}
+
+// ── RUN ──
+function runModel(){
+  const btn=document.getElementById('runBtn');btn.classList.add('loading');showErr('');
+  setTimeout(()=>{
+    const alpha=parseInt(document.getElementById('alphaSlider').value)/100;
+    const k=parseInt(document.getElementById('kSlider').value);
+    const sf=document.getElementById('subject').value,lf=document.getElementById('level').value,pf=document.getElementById('paidFilter').value;
+    const query=document.getElementById('query').value.trim();
+    let results=[];
+    try{
+      if(activeModel==='popularity'){results=getPopularityRecommendations(trainData,sf||null,lf||null,pf,k);}
+      else if(activeModel==='content'){
+        if(!query){showErr('Vui lòng nhập từ khóa.');btn.classList.remove('loading');return;}
+        const qv=transformQuery(query,tfidfVectorizer.idf);
+        let recs=trainData.map((c,i)=>({...c,score:cosineSim(qv,tfidfMatrix[i]),scoreLabel:'Similarity'}));
+        recs=applyFilters(recs,sf,lf,pf).sort((a,b)=>b.score-a.score).slice(0,k).filter(c=>c.score>0);
+        results=recs;
+      }
+      else if(activeModel==='cf'){
+        if(selectedUserId===null){showErr('Vui lòng chọn một user.');btn.classList.remove('loading');return;}
+        let recs=getRecommendationsCf(selectedUserId,trainUserItemMatrix,itemSimilarityDf,k*3);
+        recs=recs.map(r=>{const info=trainData.find(c=>c.course_title===r.course_title)||{};return{...info,...r};});
+        results=applyFilters(recs,sf,lf,pf).slice(0,k);
+      }
+      else if(activeModel==='hybrid'){
+        if(activeInputTab==='query'){
+          if(!query){showErr('Vui lòng nhập từ khóa.');btn.classList.remove('loading');return;}
+          let recs=hybridQueryRecommend(query,tfidfVectorizer,tfidfMatrix,contentSimilarityMatrix,itemSimilarityDf,trainData,alpha,k*3);
+          results=applyFilters(recs,sf,lf,pf).slice(0,k);
+        }else{
+          if(selectedUserId===null){showErr('Vui lòng chọn một user.');btn.classList.remove('loading');return;}
+          const titles=trainData.map(c=>c.course_title);
+          let recs=hybridUserRecommend(selectedUserId,trainUserItemMatrix,contentSimilarityMatrix,titles,itemSimilarityDf,trainData,alpha,k*3);
+          results=applyFilters(recs,sf,lf,pf).slice(0,k);
+        }
+      }
+    }catch(e){showErr('Lỗi: '+e.message);btn.classList.remove('loading');return;}
+    btn.classList.remove('loading');renderResults(results);
+  },300);
+}
+
+function applyFilters(a,sf,lf,pf){let r=[...a];if(sf)r=r.filter(c=>c.subject===sf);if(lf)r=r.filter(c=>c.level===lf);if(pf==='paid')r=r.filter(c=>c.is_paid);if(pf==='free')r=r.filter(c=>!c.is_paid);return r;}
+
+function renderResults(results){
+  const cnt=document.getElementById('resCount'),note=document.getElementById('srcNote'),cont=document.getElementById('resCont');
+  const av=parseInt(document.getElementById('alphaSlider').value)/100;
+  if(!results.length){
+    cnt.textContent='0 kết quả';note.style.display='none';
+    cont.innerHTML=`<div class="empty"><div class="empty-icon">∅</div><h3>Không có kết quả</h3><p>Thử điều chỉnh bộ lọc hoặc từ khóa.</p></div>`;
+    return;
+  }
+  cnt.textContent=`${results.length} khóa học`;
+  note.style.display='block';
+  const ui=selectedUserId!==null?` · User #${selectedUserId}`:'';
+  const ai=activeModel==='hybrid'?` · α=${av.toFixed(2)}`:'';
+  note.innerHTML=`<strong>${dataSource==='upload'?'CSV upload':'Dữ liệu mẫu'} (${trainData.length} khoá)</strong> · ${MODEL_INFO[activeModel].label}${ai}${ui}`;
+
+  const mx=Math.max(...results.map(r=>r.score),0.001);
+  let h='<div class="clist">';
+  results.forEach((c,i)=>{
+    const pct=(c.score/mx*100).toFixed(0);
+    const isH=activeModel==='hybrid'&&c.contentScore!==undefined;
+    const bd=isH?`<div class="score-bd"><div class="sb-c" style="width:${Math.round((c.contentScore||0)*40)}px" title="Content:${(c.contentScore||0).toFixed(3)}"></div><div class="sb-f" style="width:${Math.round((c.cfScore||0)*40)}px" title="CF:${(c.cfScore||0).toFixed(3)}"></div></div>`:'';
+    h+=`<div class="ccard" style="animation-delay:${i*.05}s">
+      <div class="crank">${i+1}</div>
+      <div class="cinfo">
+        <div class="ctitle" title="${c.course_title}">${c.course_title}</div>
+        <div class="ctags">
+          <span class="ctag ct-s">${c.subject||'—'}</span>
+          <span class="ctag ct-l">${c.level||'—'}</span>
+          <span class="ctag ${c.is_paid?'ct-paid':'ct-free'}">${c.is_paid?formatPrice(c.price||0):'Free'}</span>
+        </div>${bd}
+      </div>
+      <div class="cscore">
+        <div class="cscore-n">${c.score.toFixed(3)}</div>
+        <div class="cscore-l">${c.scoreLabel}</div>
+        <div class="cscore-track"><div class="cscore-fill" style="width:${pct}%"></div></div>
+      </div>
+    </div>`;
+  });
+  h+='</div>';
+  cont.innerHTML=h;
+}
+
+function clearResults(){
+  document.getElementById('resCount').textContent='Chờ yêu cầu…';
+  document.getElementById('srcNote').style.display='none';
+  document.getElementById('resCont').innerHTML='<div class="empty"><div class="empty-icon">◈</div><h3>Sẵn sàng đề xuất</h3><p>Nhấn <strong style="color:var(--ink2)">Chạy</strong> để nhận gợi ý.</p></div>';
+}
+
+// ── USER LIST ──
+const AV_COLORS=['#4f8ef7','#34d399','#fbbf24','#a78bfa','#f87171','#22d3ee','#fb923c'];
+function renderUserList(users,f){
+  const list=document.getElementById('userList');
+  let filtered=f?users.filter(u=>String(u.id).includes(f)||u.preferred_subjects.some(s=>s.toLowerCase().includes(f.toLowerCase()))):users;
+  const shown=filtered.slice(0,60);
+  list.innerHTML=shown.map(u=>{
+    const col=AV_COLORS[u.id%AV_COLORS.length];
+    const nR=allRatings.filter(r=>r.user_id===u.id).length;
+    const tags=u.preferred_subjects.map(s=>`<span class="u-tag">${s}</span>`).join('');
+    return`<div class="user-item ${selectedUserId===u.id?'selected':''}" onclick="selectUser(${u.id})">
+      <div class="u-avatar" style="background:${col}">${String(u.id).padStart(2,'0')}</div>
+      <div class="u-info"><div class="u-name">User #${u.id}</div><div class="u-meta">${nR} ratings</div><div class="u-tags">${tags}</div></div>
+    </div>`;
+  }).join('');
+  if(filtered.length>60)list.innerHTML+=`<div style="text-align:center;padding:7px;font-size:11px;color:var(--ink3)">+${filtered.length-60} users khác…</div>`;
+}
+function filterUsers(q){renderUserList(syntheticUsers,q);}
+function selectUser(uid){selectedUserId=uid;renderUserList(syntheticUsers,document.getElementById('userSearch').value);renderSelectedUserCard(uid);}
+function renderSelectedUserCard(uid){
+  const card=document.getElementById('selUserCard');
+  const user=syntheticUsers.find(u=>u.id===uid);if(!user){card.classList.remove('on');return;}
+  const col=AV_COLORS[uid%AV_COLORS.length];
+  const top=allRatings.filter(r=>r.user_id===uid).sort((a,b)=>b.rating-a.rating).slice(0,6);
+  const ri=top.map(r=>{const cls=r.rating>=4?'rb-high':r.rating>=3?'rb-mid':'rb-low';return`<div class="suc-rated-item"><div class="suc-rated-title">${r.course_title}</div><div class="suc-badge ${cls}">${r.rating}</div></div>`;}).join('');
+  card.innerHTML=`<div class="suc-head"><div class="suc-avatar" style="background:${col}">${String(uid).padStart(2,'0')}</div><div><div class="suc-name">User #${uid}</div><div class="suc-meta">${user.preferred_subjects.join(', ')} · ${allRatings.filter(r=>r.user_id===uid).length} ratings</div></div></div><div class="suc-lbl">Top ratings</div><div class="suc-rated-list">${ri}</div>`;
+  card.classList.add('on');
+}
+
+// ── CSV ──
+function parseCSV(text){
+  const lines=text.trim().split('\n');if(lines.length<2)throw new Error('CSV không có dữ liệu.');
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
+  if(!headers.includes('course_title'))throw new Error('Thiếu cột "course_title"');
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const vals=[];let cur='',inQ=false;
+    for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){vals.push(cur);cur='';}else cur+=ch;}
+    vals.push(cur);const row={};
+    headers.forEach((h,i)=>row[h]=(vals[i]||'').trim().replace(/^"|"$/g,''));
+    return{course_title:row['course_title']||'',subject:row['subject']||'Khác',level:row['level']||'All Levels',price:parseFloat(row['price'])||0,is_paid:(row['is_paid']||'').toLowerCase()==='true'||parseFloat(row['price'])>0,num_subscribers:parseInt(row['num_subscribers'])||0,num_reviews:parseInt(row['num_reviews'])||0};
+  }).filter(c=>c.course_title&&c.subject&&c.subject!=='Khác');
+}
+async function handleFile(input){
+  const file=input.files[0];if(!file)return;showErr('');
+  const reader=new FileReader();
+  reader.onload=async e=>{try{const courses=parseCSV(e.target.result);if(courses.length<5)throw new Error('Cần ít nhất 5 khóa học.');uploadedCourses=courses;dataSource='upload';document.getElementById('fcName').textContent=file.name;document.getElementById('fcMeta').textContent=`${courses.length.toLocaleString()} khoá · ${(file.size/1024).toFixed(1)} KB`;document.getElementById('fileChip').classList.add('on');selectedUserId=null;await initSystem();}catch(e){showErr('Lỗi: '+e.message);}};
+  reader.readAsText(file);
+}
+async function removeFile(){uploadedCourses=null;dataSource='sample';document.getElementById('csvFile').value='';document.getElementById('fileChip').classList.remove('on');selectedUserId=null;showErr('');await initSystem();}
+function populateSubject(courses){const subs=[...new Set(courses.map(c=>c.subject).filter(Boolean))].sort();const sel=document.getElementById('subject');sel.innerHTML='<option value="">Tất cả</option>';subs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});}
+function showErr(msg){const el=document.getElementById('errBanner');el.textContent=msg;el.classList.toggle('on',!!msg);}
+
+// ── DRAG & DROP ──
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--accent)';});
+dz.addEventListener('dragleave',()=>dz.style.borderColor='');
+dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='';const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.csv')){document.getElementById('csvFile').files=e.dataTransfer.files;handleFile(document.getElementById('csvFile'));}else showErr('Chỉ hỗ trợ .csv');});
+document.getElementById('query').addEventListener('keydown',e=>{if(e.key==='Enter')runModel();});
+
+initSystem();
+</script>
+</body>
+</html>
